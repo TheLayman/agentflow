@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import logging
 from pathlib import Path
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Query
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -41,13 +41,13 @@ app.add_middleware(
 
 
 @app.post("/decompose", response_model=DecomposeResponse)
-async def decompose(req: DecomposeRequest):
-    logger.info("/decompose called (granularity=%s)", req.granularity)
+async def decompose(req: DecomposeRequest, detailed: bool = Query(True, description="Generate detailed mermaid diagram with task details")):
+    logger.info("/decompose called (granularity=%s, detailed=%s)", req.granularity, detailed)
     llm_wf, engine_mode, debug = try_llm_decomposition(req)
     wf = llm_wf or fallback_decomposition(req)
     topo, issues = topo_sort(wf.tasks)
     issues += validate_workflow(wf)
-    mermaid = to_mermaid(wf)
+    mermaid = to_mermaid(wf, detailed=detailed)
     engine = engine_mode or "heuristic"
     llm_error = (debug or {}).get("llm_error") if debug else None
     llm_raw = (debug or {}).get("llm_raw") if debug else None
