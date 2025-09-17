@@ -62,19 +62,9 @@ def try_llm_decomposition(req: DecomposeRequest) -> tuple[Workflow | None, str |
     reasoning_effort = os.getenv("OPENAI_REASONING_EFFORT", "medium")
 
     try:
-        
-        class ConstraintsStrict(BaseModel):
-            model_config = ConfigDict(extra="forbid")
-            roles: List[str]
-            tools: List[str]
-            compliance: List[str]
-            sla: str
-            departments: List[str]
-
         class ParsedWorkflow(BaseModel):
             title: str
             version: str | None = "0.1"
-            constraints: ConstraintsStrict | None = None
             assumptions: List[str] = []
             tasks: List[Task]
 
@@ -82,8 +72,7 @@ def try_llm_decomposition(req: DecomposeRequest) -> tuple[Workflow | None, str |
 
         system_prompt = (
             "You are a workflow decomposition engine. Produce granular, dependency-aware workflows. "
-            "Ensure acyclic dependencies using task ids like T1..Tn only. "
-            "If you include a constraints object, include all keys: roles, tools, compliance, sla, departments (use empty arrays or empty string if unknown)."
+            "Ensure acyclic dependencies using task ids like T1..Tn only."
         )
         user_prompt = (
             f"Process: {req.text}\n"
