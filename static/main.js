@@ -5,7 +5,38 @@ let currentLlmData = null;
 
 // Wait for DOM to be ready
 document.addEventListener('DOMContentLoaded', function() {
-  mermaid.initialize({ startOnLoad: false, theme: 'default' });
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: 'base',
+    themeVariables: {
+      lineColor: '#cbd5e1',
+      arrowheadColor: '#cbd5e1',
+      primaryTextColor: '#000000',
+      textColor: '#000000',
+      edgeLabelBackground: '#0a1324',
+      primaryColor: '#f1f5f9',
+      primaryBorderColor: '#94a3b8',
+      secondaryColor: '#f8fafc',
+      tertiaryColor: '#cbd5e1',
+      background: '#0f172a',
+      mainBkg: '#f1f5f9',
+      secondBkg: '#f8fafc',
+      tertiaryBkg: '#cbd5e1',
+      // Additional text color overrides
+      nodeBkg: '#f1f5f9',
+      clusterBkg: '#f8fafc',
+      edgeLabelText: '#000000',
+      nodeTextColor: '#000000'
+    },
+    flowchart: { 
+      useMaxWidth: true,
+      htmlLabels: true,
+      curve: 'basis',
+      nodeSpacing: 50,
+      rankSpacing: 60,
+      padding: 20
+    }
+  });
 
   // Add event listeners
   const decomposeBtn = document.getElementById('decompose');
@@ -26,16 +57,14 @@ document.addEventListener('DOMContentLoaded', function() {
 async function decompose() {
   const inputEl = document.getElementById('input');
   const titleEl = document.getElementById('title');
-  const granularityEl = document.getElementById('granularity');
   const decomposeBtn = document.getElementById('decompose');
   const loaderEl = document.getElementById('loader');
   const renderEl = document.getElementById('render');
   
-  if (!inputEl || !titleEl || !granularityEl) {
+  if (!inputEl || !titleEl) {
     console.error('Required DOM elements not found:', {
       input: !!inputEl,
       title: !!titleEl,
-      granularity: !!granularityEl
     });
     alert('Page not fully loaded. Please try again.');
     return;
@@ -43,7 +72,6 @@ async function decompose() {
   
   const text = inputEl.value.trim();
   const title = titleEl.value.trim();
-  const granularity = granularityEl.value;
   if (!text) { alert('Please describe the process'); return; }
 
   // Show loader and disable button
@@ -58,7 +86,7 @@ async function decompose() {
     const res = await fetch('/decompose', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, title: title || null, granularity }),
+      body: JSON.stringify({ text, title: title || null }),
     });
     if (!res.ok) { 
       throw new Error('Failed to decompose'); 
@@ -149,23 +177,49 @@ function renderDebug(data) {
 }
 
 async function downloadJpg() {
-  const svg = document.querySelector('#render svg');
-  if (!svg) { alert('Nothing to download yet'); return; }
-  const serializer = new XMLSerializer();
-  let source = serializer.serializeToString(svg);
-  // Add XML declaration if missing
-  if (!source.match(/^<\?xml/)) {
-    source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
+  // Prefer re-rendering Mermaid without HTML labels to avoid foreignObject tainting
+  const mermaidPre = document.getElementById('mermaid');
+  let svgString = '';
+  const code = mermaidPre ? mermaidPre.textContent : '';
+  if (!code || !code.trim()) {
+    alert('Nothing to download yet');
+    return;
   }
-  const svgBlob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
+
+  try {
+    // Render a clean SVG for export
+    const exportCode = cleanMermaidForExport(code);
+    const result = await mermaid.render('export-graph', exportCode, undefined, {
+      securityLevel: 'strict',
+      theme: 'base',
+      themeVariables: {
+        lineColor: '#94a3b8',
+        arrowheadColor: '#94a3b8',
+        primaryTextColor: '#1f2937',
+        edgeLabelBackground: '#ffffff'
+      },
+      flowchart: { htmlLabels: false, useMaxWidth: true },
+    });
+    svgString = result.svg;
+  } catch (e) {
+    // Fallback to current on-screen SVG
+    const svg = document.querySelector('#render svg');
+    if (!svg) { alert('Nothing to download yet'); return; }
+    svgString = new XMLSerializer().serializeToString(svg);
+  }
+
+  if (!/^<\?xml/.test(svgString)) {
+    svgString = '<?xml version="1.0" standalone="no"?>\n' + svgString;
+  }
+  const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
   const url = URL.createObjectURL(svgBlob);
 
   const img = new Image();
   img.onload = function () {
     const canvas = document.createElement('canvas');
     const ratio = window.devicePixelRatio || 2;
-    const w = Math.ceil(img.width);
-    const h = Math.ceil(img.height);
+    const w = Math.ceil(img.width || 1200);
+    const h = Math.ceil(img.height || 800);
     canvas.width = w * ratio;
     canvas.height = h * ratio;
     const ctx = canvas.getContext('2d');
@@ -174,16 +228,51 @@ async function downloadJpg() {
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
     ctx.drawImage(img, 0, 0);
     URL.revokeObjectURL(url);
-    canvas.toBlob((blob) => {
+    if (canvas.toBlob) {
+      canvas.toBlob((blob) => {
+        if (!blob) { fallbackDownloadSvg(svgString); return; }
+        const a = document.createElement('a');
+        a.download = 'workflow.jpg';
+        a.href = URL.createObjectURL(blob);
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+      }, 'image/jpeg', 0.95);
+    } else {
       const a = document.createElement('a');
       a.download = 'workflow.jpg';
-      a.href = URL.createObjectURL(blob);
+      a.href = canvas.toDataURL('image/jpeg', 0.95);
       a.click();
-      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-    }, 'image/jpeg', 0.95);
+    }
   };
-  img.onerror = () => { URL.revokeObjectURL(url); alert('Failed to render image'); };
+  img.onerror = () => { URL.revokeObjectURL(url); fallbackDownloadSvg(svgString); };
   img.src = url;
+}
+
+function fallbackDownloadSvg(svgString) {
+  try {
+    const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+    const a = document.createElement('a');
+    a.download = 'workflow.svg';
+    a.href = URL.createObjectURL(blob);
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  } catch (e) {
+    alert('Failed to export image');
+  }
+}
+
+function cleanMermaidForExport(code) {
+  try {
+    // Remove HTML tags like <b>, <span>, and convert <br> to newline to avoid invalid XML inside labels
+    let c = code;
+    c = c.replace(/<br\s*\/?>/gi, '\\n');
+    c = c.replace(/<\/?(b|strong|i|em|u|span|small|sup|sub)[^>]*>/gi, '');
+    // Strip any remaining tags as final safety
+    c = c.replace(/<[^>]+>/g, '');
+    return c;
+  } catch (_) {
+    return code;
+  }
 }
 
 function downloadLlmJson() {

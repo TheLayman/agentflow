@@ -139,7 +139,7 @@ def try_llm_agentic_plan(wf: Workflow) -> Tuple[AgenticPlanResponse | None, str 
         return None, None, None
 
     model = os.getenv("OPENAI_MODEL", "gpt-5")
-    reasoning_effort = os.getenv("OPENAI_REASONING_EFFORT", "medium")
+    reasoning_effort = os.getenv("OPENAI_REASONING_EFFORT", "minimal")
 
     class ParsedAgentSpec(BaseModel):
         id: str

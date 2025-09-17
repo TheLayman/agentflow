@@ -3,7 +3,38 @@
 let currentAgenticData = null;
 
 document.addEventListener('DOMContentLoaded', function() {
-  mermaid.initialize({ startOnLoad: false, theme: 'default' });
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: 'base',
+    themeVariables: {
+      lineColor: '#cbd5e1',
+      arrowheadColor: '#cbd5e1',
+      primaryTextColor: '#000000',
+      textColor: '#000000',
+      edgeLabelBackground: '#0a1324',
+      primaryColor: '#f1f5f9',
+      primaryBorderColor: '#94a3b8',
+      secondaryColor: '#f8fafc',
+      tertiaryColor: '#cbd5e1',
+      background: '#0f172a',
+      mainBkg: '#f1f5f9',
+      secondBkg: '#f8fafc',
+      tertiaryBkg: '#cbd5e1',
+      // Additional text color overrides
+      nodeBkg: '#f1f5f9',
+      clusterBkg: '#f8fafc',
+      edgeLabelText: '#000000',
+      nodeTextColor: '#000000'
+    },
+    flowchart: { 
+      useMaxWidth: true,
+      htmlLabels: true,
+      curve: 'basis',
+      nodeSpacing: 50,
+      rankSpacing: 60,
+      padding: 20
+    }
+  });
 
   const btn = document.getElementById('generate');
   const downloadJsonBtn = document.getElementById('downloadJson');
@@ -217,4 +248,3 @@ function switchTab(which) {
     tabD.classList.add('primary');
   }
 }
-

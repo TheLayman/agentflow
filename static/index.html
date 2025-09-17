@@ -45,7 +45,103 @@
       .muted { color: var(--muted); }
       details { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; background: #0a1324; }
       .controls a button { background:#0a1223; }
-      @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+      /* Mermaid edge styling for dark background */
+      #render svg .edgePath .path { stroke: #cbd5e1 !important; }
+      #render svg marker path { fill: #cbd5e1 !important; }
+      #render svg .edgeLabel { color: #e2e8f0 !important; }
+      #render svg .edgeLabel text { fill: #e2e8f0 !important; }
+      
+      /* Ensure node label text is black and readable over light node backgrounds */
+      #render svg .node text { 
+        fill: #000000 !important; 
+        font-weight: 600 !important;
+        font-size: 13px !important;
+      }
+      #render svg .node foreignObject { 
+        color: #000000 !important; 
+        font-weight: 600 !important;
+      }
+      #render svg .node foreignObject div { 
+        color: #000000 !important; 
+        font-weight: 600 !important;
+        line-height: 1.2 !important;
+      }
+      #render svg .node foreignObject span { 
+        color: #000000 !important; 
+        font-weight: 600 !important;
+      }
+      
+      /* Ensure all text in nodes is black - comprehensive override */
+      #render svg .nodeLabel { 
+        color: #000000 !important; 
+        font-weight: 600 !important;
+      }
+      #render svg .cluster text { 
+        fill: #000000 !important; 
+        font-weight: 600 !important;
+      }
+      #render svg text { 
+        fill: #000000 !important; 
+      }
+      #render svg .label text { 
+        fill: #000000 !important; 
+      }
+      #render svg .label div { 
+        color: #000000 !important; 
+      }
+      #render svg tspan { 
+        fill: #000000 !important; 
+      }
+      
+      /* Override any remaining light text colors */
+      #render svg [fill="#e2e8f0"] { 
+        fill: #000000 !important; 
+      }
+      #render svg [color="#e2e8f0"] { 
+        color: #000000 !important; 
+      }
+      
+      /* Make sure node backgrounds are light enough for contrast */
+      #render svg .node rect { 
+        fill: #f1f5f9 !important; 
+        stroke: #64748b !important; 
+        stroke-width: 2px !important;
+      }
+      #render svg .node polygon { 
+        fill: #fef2f2 !important; 
+        stroke: #ef4444 !important; 
+        stroke-width: 2px !important;
+      }
+      
+      /* Improve workflow render container */
+      #render { 
+        min-height: 400px !important; 
+        overflow: auto !important; 
+        background: rgba(255, 255, 255, 0.02) !important;
+        border-radius: 10px !important;
+      }
+      
+      /* Ensure proper sizing for Mermaid SVG */
+      #render svg { 
+        width: 100% !important; 
+        height: auto !important; 
+        min-height: 300px !important;
+        max-width: none !important;
+      }
+      
+      @media (max-width: 900px) { 
+        main { grid-template-columns: 1fr; } 
+        #render { min-height: 300px !important; }
+        #render svg { min-height: 250px !important; }
+      }
+      
+      @media (max-width: 768px) {
+        #render { min-height: 250px !important; }
+        #render svg { min-height: 200px !important; }
+        /* Smaller text on mobile for better fit */
+        #render svg .node text { font-size: 11px !important; }
+        #render svg .node foreignObject div { font-size: 11px !important; }
+      }
     </style>
   </head>
   <body>
@@ -55,11 +151,6 @@
         <span>Workflow Decomposer</span>
       </div>
       <div class="controls">
-        <select id="granularity">
-          <option value="low">Low</option>
-          <option value="medium" selected>Medium</option>
-          <option value="high">High</option>
-        </select>
         <button id="decompose" class="primary">Decompose</button>
         <button id="downloadJpg">Download JPG</button>
         <a href="/agentic" style="text-decoration:none"><button>Agentic Workflow</button></a>
