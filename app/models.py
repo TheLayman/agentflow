@@ -54,3 +54,45 @@ class DecomposeResponse(BaseModel):
     engine: str | None = None
     llm_error: str | None = None
     llm_raw: str | None = None
+
+
+# ---------------- Agentic Planning Models ----------------
+
+class AgentSpec(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    id: str  # Format: "A\d+"
+    name: str
+    description: str | None = None
+    skills: List[str] = Field(default_factory=list)
+    tools: List[str] = Field(default_factory=list)
+    parameters_schema: Dict[str, Any] | None = None
+
+
+class HumanSpec(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    id: str  # Format: "H\d+"
+    name: str
+    description: str | None = None
+
+
+class AssignedTask(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    task_id: str
+    owner_type: Literal["agent", "human"]
+    owner_id: str  # e.g., A1 or H1
+    instructions: str
+    inputs: List[str] = Field(default_factory=list)
+    outputs: List[str] = Field(default_factory=list)
+
+
+class AgenticPlanRequest(BaseModel):
+    workflow: Workflow
+
+
+class AgenticPlanResponse(BaseModel):
+    agents: List[AgentSpec] = Field(default_factory=list)
+    humans: List[HumanSpec] = Field(default_factory=list)
+    assignments: List[AssignedTask] = Field(default_factory=list)
+    engine: str | None = None
+    llm_error: str | None = None
+    llm_raw: str | None = None

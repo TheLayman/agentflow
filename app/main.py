@@ -8,10 +8,11 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
-from .models import DecomposeRequest, DecomposeResponse, Workflow
+from .models import DecomposeRequest, DecomposeResponse, Workflow, AgenticPlanRequest, AgenticPlanResponse
 from .decompose import fallback_decomposition, try_llm_decomposition
 from .utils import topo_sort, validate_workflow
 from .mermaid import to_mermaid
+from .agentic import try_llm_agentic_plan, fallback_agentic_plan
 
 
 # Basic logging config if not set by runner (e.g., uvicorn)
@@ -71,3 +72,21 @@ async def index(_: Request):
 
 
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+
+
+@app.post("/agentic_plan", response_model=AgenticPlanResponse)
+async def agentic_plan(req: AgenticPlanRequest):
+    logger.info("/agentic_plan called for workflow title=%s", req.workflow.title)
+    llm_plan, engine, debug = try_llm_agentic_plan(req.workflow)
+    if llm_plan:
+        return llm_plan
+    plan = fallback_agentic_plan(req.workflow)
+    if debug and debug.get("llm_error"):
+        plan.llm_error = debug.get("llm_error")
+    return plan
+
+
+@app.get("/agentic", response_class=HTMLResponse)
+async def agentic_page(_: Request):
+    with open(STATIC_DIR / "agentic.html", "r", encoding="utf-8") as f:
+        return HTMLResponse(f.read())

@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Agentic Workflow Planner</title>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+    <link rel="preconnect" href="https://unpkg.com" />
+    <style>
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; }
+      header { padding: 12px 16px; border-bottom: 1px solid #eee; display:flex; align-items:center; justify-content:space-between; }
+      main { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 16px; }
+      textarea { width: 100%; height: 200px; resize: vertical; }
+      .panel { border: 1px solid #eee; border-radius: 8px; padding: 12px; }
+      .row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+      input[type="text"] { flex: 1; padding: 6px 8px; border: 1px solid #ddd; border-radius: 4px; }
+      label { min-width: 120px; font-weight: 500; }
+      #graph { border: 1px solid #eee; border-radius: 8px; padding: 8px; overflow: auto; background: #fafafa; }
+      #mermaid { min-height: 300px; }
+      .controls { display:flex; gap:8px; flex-wrap: wrap; }
+      button { cursor: pointer; padding: 8px 12px; border-radius: 6px; border: 1px solid #ddd; background: white; }
+      button.primary { background: #1e88e5; border-color: #1e88e5; color: white; }
+      button:disabled { opacity: 0.6; cursor: not-allowed; background: #f0f0f0; color: #999; }
+      .loader { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; }
+      .spinner { width: 32px; height: 32px; border: 3px solid #f3f3f3; border-top: 3px solid #1e88e5; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 16px; }
+      @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+      code { background: #f6f8fa; padding: 2px 4px; border-radius: 4px; }
+      .cols { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+      .list { display:flex; flex-direction:column; gap:10px; }
+      .card { border:1px solid #ddd; border-radius:8px; padding:10px; background:white; }
+      table { width:100%; border-collapse: collapse; }
+      th, td { border-bottom: 1px solid #eee; text-align:left; padding:6px 8px; vertical-align: top; }
+      .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; border:1px solid #ddd; background:#f7f7f7; }
+      .muted { color:#666; }
+      @media (max-width: 1100px) { main { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div><strong>Agentic Workflow Planner</strong></div>
+      <div class="controls">
+        <a href="/" style="text-decoration:none"><button>Back to Decomposer</button></a>
+        <button id="generate" class="primary">Generate From Latest</button>
+      </div>
+    </header>
+    <main>
+      <div class="panel">
+        <h3>Latest Workflow</h3>
+        <div id="latestMeta" class="muted">No workflow found yet. Go back and click Decompose.</div>
+      </div>
+
+      <div class="panel" id="graph">
+        <h3>Agentic Plan</h3>
+        <div id="loader" class="loader" style="display: none;">
+          <div class="spinner"></div>
+          <p>Generating agentic plan...</p>
+        </div>
+
+        <div id="plan" style="display:none;">
+          <div class="cols">
+            <div>
+              <h4>Agents</h4>
+              <div id="agents" class="list"></div>
+            </div>
+            <div>
+              <h4>Humans</h4>
+              <div id="humans" class="list"></div>
+            </div>
+          </div>
+
+          <h4 style="margin-top:14px;">Task Assignments</h4>
+          <div style="overflow:auto;">
+            <table id="assignments">
+              <thead>
+                <tr>
+                  <th>Task</th>
+                  <th>Owner</th>
+                  <th>Inputs</th>
+                  <th>Outputs</th>
+                  <th>Instructions</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <details style="margin-top:10px;">
+            <summary>LLM Debug</summary>
+            <div class="row" style="flex-direction:column; align-items:stretch; gap:4px;">
+              <div><strong>Engine:</strong> <code id="engine"></code></div>
+              <div><strong>LLM Error:</strong></div>
+              <pre id="llm_error" style="white-space:pre-wrap"></pre>
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div><strong>LLM Raw:</strong></div>
+                <button id="downloadJson" style="padding: 4px 8px; font-size: 12px;">Download JSON</button>
+              </div>
+              <pre id="llm_raw" style="white-space:pre-wrap; max-height:200px; overflow:auto;"></pre>
+            </div>
+          </details>
+        </div>
+      </div>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="/static/agentic.js"></script>
+  </body>
+  </html>

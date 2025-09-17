@@ -64,6 +64,12 @@ async function decompose() {
       throw new Error('Failed to decompose'); 
     }
     const data = await res.json();
+    // Persist latest workflow/response for Agentic page to reuse without asking input again
+    try {
+      window.localStorage.setItem('lastWorkflowResponse', JSON.stringify(data));
+    } catch (e) {
+      try { window.sessionStorage.setItem('lastWorkflowResponse', JSON.stringify(data)); } catch (_) {}
+    }
     const mer = data.mermaid;
     
     const mermaidEl = document.getElementById('mermaid');

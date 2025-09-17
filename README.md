@@ -9,6 +9,7 @@ Features
   - Fallback: Simple heuristics that produce a linear DAG from sentences
 - Mermaid flowchart generation and in-browser rendering
 - Download the diagram as JPG (client-side SVG->canvas conversion)
+ - Agentic planning: deduplicate agents/humans and assign tasks with crisp instructions
 
 Quickstart
 1) Install deps
@@ -36,11 +37,18 @@ Upgrade SDK (to enable responses.parse)
    - Visit http://localhost:8000
    - Enter your process, choose granularity, click Decompose
    - Click "Download JPG" to save the diagram
+   - Click "Agentic Workflow" to open the agent planning page that groups tasks into reusable agents/human roles and shows per-task assignments
+     - The Agentic page consumes the latest decomposed workflow saved by the UI; it does not ask for the process again. If none is found, decompose first on the home page.
 
 API
 - POST /decompose
   - Body: { text: string, title?: string, granularity?: "low"|"medium"|"high", constraints?: object }
   - Returns: { workflow, mermaid, topo_order, issues }
+
+- POST /agentic_plan
+  - Body: { workflow: Workflow }
+  - Returns: { agents: AgentSpec[], humans: HumanSpec[], assignments: AssignedTask[], engine, llm_error?, llm_raw? }
+  - Behavior: If `OPENAI_API_KEY` is set, uses structured LLM parsing to dedupe/group agents by capability and map each task to an agent/human with crisp instructions. Otherwise falls back to heuristics.
 
 Notes
 - Mermaid rendering and JPG export happen in the browser; no Graphviz install required.
