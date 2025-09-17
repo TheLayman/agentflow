@@ -1,5 +1,8 @@
 /* global mermaid */
 
+// Global variable to store LLM raw data for download
+let currentLlmData = null;
+
 // Wait for DOM to be ready
 document.addEventListener('DOMContentLoaded', function() {
   mermaid.initialize({ startOnLoad: false, theme: 'default' });
@@ -7,12 +10,16 @@ document.addEventListener('DOMContentLoaded', function() {
   // Add event listeners
   const decomposeBtn = document.getElementById('decompose');
   const downloadBtn = document.getElementById('downloadJpg');
+  const downloadJsonBtn = document.getElementById('downloadJson');
   
   if (decomposeBtn) {
     decomposeBtn.addEventListener('click', decompose);
   }
   if (downloadBtn) {
     downloadBtn.addEventListener('click', downloadJpg);
+  }
+  if (downloadJsonBtn) {
+    downloadJsonBtn.addEventListener('click', downloadLlmJson);
   }
 });
 
@@ -127,6 +134,9 @@ function renderDebug(data) {
     return;
   }
   
+  // Store the entire response data for potential JSON download
+  currentLlmData = data;
+  
   engineEl.textContent = data.engine || '';
   errEl.textContent = data.llm_error || '';
   rawEl.textContent = data.llm_raw || '';
@@ -168,4 +178,46 @@ async function downloadJpg() {
   };
   img.onerror = () => { URL.revokeObjectURL(url); alert('Failed to render image'); };
   img.src = url;
+}
+
+function downloadLlmJson() {
+  if (!currentLlmData) {
+    alert('No LLM data available to download. Please decompose a workflow first.');
+    return;
+  }
+  
+  let jsonData;
+  
+  // Try to parse the llm_raw field as JSON if it exists
+  if (currentLlmData.llm_raw) {
+    try {
+      // Parse the raw LLM response which should be JSON
+      jsonData = JSON.parse(currentLlmData.llm_raw);
+    } catch (e) {
+      // If parsing fails, include the raw text in the download
+      jsonData = {
+        raw_text: currentLlmData.llm_raw,
+        parse_error: e.message,
+        engine: currentLlmData.engine,
+        llm_error: currentLlmData.llm_error
+      };
+    }
+  } else {
+    // Fallback to the entire response data if no raw LLM data
+    jsonData = currentLlmData;
+  }
+  
+  // Create the JSON blob and download
+  const jsonString = JSON.stringify(jsonData, null, 2);
+  const blob = new Blob([jsonString], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  
+  const a = document.createElement('a');
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  a.download = `llm-response-${timestamp}.json`;
+  a.href = url;
+  a.click();
+  
+  // Clean up the URL object
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
 }

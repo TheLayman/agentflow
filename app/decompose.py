@@ -170,7 +170,7 @@ def try_llm_decomposition(req: DecomposeRequest) -> tuple[Workflow | None, str |
                 ],
                 text_format=ParsedWorkflow,
                 reasoning={"effort": reasoning_effort},
-                max_output_tokens=12000,
+                max_output_tokens=120000,
             )
             parsed: ParsedWorkflow | None = getattr(resp, "output_parsed", None)
             if parsed is None:
