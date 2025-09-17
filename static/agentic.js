@@ -4,16 +4,25 @@ let currentAgenticData = null;
 
 document.addEventListener('DOMContentLoaded', function() {
   mermaid.initialize({ startOnLoad: false, theme: 'default' });
+
   const btn = document.getElementById('generate');
   const downloadJsonBtn = document.getElementById('downloadJson');
   if (btn) btn.addEventListener('click', generateAgentic);
   if (downloadJsonBtn) downloadJsonBtn.addEventListener('click', downloadAgenticJson);
-  // Try to populate latest metadata and auto-enable button
+
+  // Populate latest workflow panel
   const latest = getLastWorkflowResponse();
   const meta = document.getElementById('latestMeta');
   if (latest && meta) {
     const tasks = (latest.workflow && latest.workflow.tasks) ? latest.workflow.tasks.length : 0;
-    meta.textContent = `${latest.workflow?.title || 'Workflow'} — ${tasks} tasks ready.`;
+    meta.innerHTML = `<strong>${escapeHtml(latest.workflow?.title || 'Workflow')}</strong> - <span class="pill">${tasks} tasks</span> ready.`;
+    try { renderWorkflowPanel(latest); } catch (e) { console.error('Render panel error', e); }
+    const tabD = document.getElementById('tabDiagram');
+    const tabT = document.getElementById('tabTasks');
+    if (tabD && tabT) {
+      tabD.addEventListener('click', () => switchTab('diagram'));
+      tabT.addEventListener('click', () => switchTab('tasks'));
+    }
   }
 });
 
@@ -31,7 +40,6 @@ async function generateAgentic() {
 
   try {
     const ddata = latest;
-    // Agentic plan
     const pres = await fetch('/agentic_plan', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -39,7 +47,6 @@ async function generateAgentic() {
     });
     if (!pres.ok) throw new Error('Failed to generate agentic plan');
     const pdata = await pres.json();
-
     currentAgenticData = pdata;
     renderAgentic(pdata, ddata.workflow);
   } catch (e) {
@@ -48,7 +55,7 @@ async function generateAgentic() {
   } finally {
     if (loaderEl) loaderEl.style.display = 'none';
     if (planEl) planEl.style.display = 'block';
-    if (btn) { btn.disabled = false; btn.textContent = 'Agentic Workflow'; }
+    if (btn) { btn.disabled = false; btn.textContent = 'Generate Plan'; }
   }
 }
 
@@ -63,7 +70,7 @@ function renderAgentic(data, workflow) {
   // Agents
   const agentsEl = document.getElementById('agents');
   agentsEl.innerHTML = '';
-  for (const a of data.agents || []) {
+  for (const a of (data.agents || [])) {
     const div = document.createElement('div');
     div.className = 'card';
     const skills = (a.skills || []).map(s => `<span class="pill">${escapeHtml(s)}</span>`).join(' ');
@@ -78,11 +85,13 @@ function renderAgentic(data, workflow) {
     `;
     agentsEl.appendChild(div);
   }
+  const agentsCount = document.getElementById('agentsCount');
+  if (agentsCount) agentsCount.textContent = String((data.agents || []).length);
 
   // Humans
   const humansEl = document.getElementById('humans');
   humansEl.innerHTML = '';
-  for (const h of data.humans || []) {
+  for (const h of (data.humans || [])) {
     const div = document.createElement('div');
     div.className = 'card';
     div.innerHTML = `
@@ -91,12 +100,14 @@ function renderAgentic(data, workflow) {
     `;
     humansEl.appendChild(div);
   }
+  const humansCount = document.getElementById('humansCount');
+  if (humansCount) humansCount.textContent = String((data.humans || []).length);
 
   // Assignments table
   const tbody = document.querySelector('#assignments tbody');
   tbody.innerHTML = '';
   const taskById = Object.fromEntries((workflow.tasks || []).map(t => [t.id, t]));
-  for (const asg of data.assignments || []) {
+  for (const asg of (data.assignments || [])) {
     const tr = document.createElement('tr');
     const t = taskById[asg.task_id] || { title: asg.task_id };
     tr.innerHTML = `
@@ -108,6 +119,8 @@ function renderAgentic(data, workflow) {
     `;
     tbody.appendChild(tr);
   }
+  const assignmentsCount = document.getElementById('assignmentsCount');
+  if (assignmentsCount) assignmentsCount.textContent = String((data.assignments || []).length);
 }
 
 function downloadAgenticJson() {
@@ -142,3 +155,66 @@ function escapeHtml(s) {
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#39;');
 }
+
+function renderWorkflowPanel(latest) {
+  const code = latest.mermaid || '';
+  const pre = document.getElementById('wfMermaid');
+  if (pre) pre.textContent = code;
+  renderMermaidIn('wfRender', code);
+  renderWorkflowTasks(latest.workflow || { tasks: [] });
+}
+
+async function renderMermaidIn(containerId, code) {
+  const mount = document.getElementById(containerId);
+  if (!mount) return;
+  mount.innerHTML = '';
+  const el = document.createElement('div');
+  el.className = 'mermaid';
+  el.textContent = code;
+  mount.appendChild(el);
+  try { await mermaid.run({ nodes: [el] }); } catch (e) { el.innerHTML = '<pre style="color:#ef4444">'+String(e)+'</pre>'; }
+}
+
+function renderWorkflowTasks(wf) {
+  const list = document.getElementById('wfTasksList');
+  if (!list) return;
+  list.innerHTML = '';
+  const tasks = (wf && wf.tasks) ? wf.tasks : [];
+  for (const t of tasks) {
+    const card = document.createElement('div');
+    card.className = 'card';
+    const owner = t.actor === 'human' ? 'Human' : 'Agent';
+    const inputs = (t.inputs || []).map(x => `<code>${escapeHtml(x)}</code>`).join(', ');
+    const outputs = (t.outputs || []).map(x => `<code>${escapeHtml(x)}</code>`).join(', ');
+    card.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+        <div><strong>${escapeHtml(t.title || t.name || t.id)}</strong></div>
+        <div><span class="pill">${escapeHtml(owner)}</span> <code>${escapeHtml(t.id)}</code></div>
+      </div>
+      ${t.tool ? `<div class="muted" style="margin-top:6px;">Tool: <code>${escapeHtml(t.tool)}</code></div>` : ''}
+      ${inputs ? `<div style="margin-top:6px;">Inputs: ${inputs}</div>` : ''}
+      ${outputs ? `<div style="margin-top:6px;">Outputs: ${outputs}</div>` : ''}
+    `;
+    list.appendChild(card);
+  }
+}
+
+function switchTab(which) {
+  const d = document.getElementById('wfDiagram');
+  const t = document.getElementById('wfTasks');
+  const tabD = document.getElementById('tabDiagram');
+  const tabT = document.getElementById('tabTasks');
+  if (!d || !t || !tabD || !tabT) return;
+  if (which === 'tasks') {
+    d.style.display = 'none';
+    t.style.display = 'block';
+    tabD.classList.remove('primary');
+    tabT.classList.add('primary');
+  } else {
+    d.style.display = 'block';
+    t.style.display = 'none';
+    tabT.classList.remove('primary');
+    tabD.classList.add('primary');
+  }
+}
+

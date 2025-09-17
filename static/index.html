@@ -7,30 +7,53 @@
     <link rel="preconnect" href="https://cdn.jsdelivr.net" />
     <link rel="preconnect" href="https://unpkg.com" />
     <style>
-      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; }
-      header { padding: 12px 16px; border-bottom: 1px solid #eee; display:flex; align-items:center; justify-content:space-between; }
-      main { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 16px; }
-      textarea { width: 100%; height: 200px; resize: vertical; }
-      .panel { border: 1px solid #eee; border-radius: 8px; padding: 12px; }
+      :root {
+        --bg: #0f172a;
+        --panel: #0b1225;
+        --card: #0e172f;
+        --muted: #94a3b8;
+        --text: #e2e8f0;
+        --border: #1e293b;
+        --primary: #3b82f6;
+        --primary-700: #2563eb;
+        --accent: #10b981;
+        --pill-bg: #0b2344;
+      }
+      * { box-sizing: border-box; }
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; color: var(--text); background: radial-gradient(1200px 600px at 100% -100%, #0b2344 10%, transparent 60%) , var(--bg); }
+      header { padding: 14px 18px; border-bottom: 1px solid var(--border); display:flex; align-items:center; justify-content:space-between; background: linear-gradient(180deg, rgba(16,24,40,0.6), rgba(16,24,40,0.2)); backdrop-filter: blur(6px); position: sticky; top: 0; z-index: 10; }
+      header .brand { display:flex; align-items:center; gap:10px; font-weight: 650; letter-spacing: 0.1px; }
+      header .brand .logo { width: 10px; height: 10px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--accent)); box-shadow: 0 0 0 3px rgba(59,130,246,0.25); }
+      main { display: grid; grid-template-columns: 1.1fr 1.2fr; gap: 18px; padding: 18px; }
+      textarea { width: 100%; height: 220px; resize: vertical; }
+      .panel { border: 1px solid var(--border); border-radius: 12px; padding: 14px; background: var(--panel); box-shadow: 0 8px 24px rgba(2, 6, 23, 0.35) inset, 0 8px 24px rgba(2, 6, 23, 0.2); }
       .row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
-      input[type="text"] { flex: 1; padding: 6px 8px; border: 1px solid #ddd; border-radius: 4px; }
+      input[type="text"] { flex: 1; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: #0a1324; color: var(--text); }
       label { min-width: 120px; font-weight: 500; }
-      #graph { border: 1px dashed #ddd; border-radius: 8px; padding: 8px; overflow: auto; background: #fafafa; }
-      #mermaid { min-height: 300px; }
-      .controls { display:flex; gap:8px; flex-wrap: wrap; }
-      button { cursor: pointer; padding: 8px 12px; border-radius: 6px; border: 1px solid #ddd; background: white; }
-      button.primary { background: #1e88e5; border-color: #1e88e5; color: white; }
-      button:disabled { opacity: 0.6; cursor: not-allowed; background: #f0f0f0; color: #999; }
+      #graph { border: 1px solid var(--border); border-radius: 12px; padding: 12px; overflow: auto; background: #0a1324; }
+      #mermaid { min-height: 300px; color: var(--muted); }
+      .controls { display:flex; gap:10px; flex-wrap: wrap; }
+      button { cursor: pointer; padding: 9px 14px; border-radius: 9px; border: 1px solid var(--border); background: #0a1223; color: var(--text); transition: all 160ms ease; }
+      button.primary { background: linear-gradient(180deg, var(--primary), var(--primary-700)); border-color: transparent; color: white; box-shadow: 0 8px 18px rgba(37, 99, 235, 0.35); }
+      button:hover { transform: translateY(-1px); }
+      button:active { transform: translateY(0); }
+      button:disabled { opacity: 0.6; cursor: not-allowed; filter: grayscale(20%); }
       .loader { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; }
-      .spinner { width: 32px; height: 32px; border: 3px solid #f3f3f3; border-top: 3px solid #1e88e5; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 16px; }
+      .spinner { width: 32px; height: 32px; border: 3px solid #1e293b; border-top: 3px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 16px; }
       @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-      code { background: #f6f8fa; padding: 2px 4px; border-radius: 4px; }
+      code { background: rgba(15, 23, 42, 0.6); padding: 2px 6px; border-radius: 6px; border: 1px solid var(--border); color: #e2e8f0; }
+      .muted { color: var(--muted); }
+      details { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; background: #0a1324; }
+      .controls a button { background:#0a1223; }
       @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
     </style>
   </head>
   <body>
     <header>
-      <div><strong>Workflow Decomposer</strong></div>
+      <div class="brand">
+        <span class="logo"></span>
+        <span>Workflow Decomposer</span>
+      </div>
       <div class="controls">
         <select id="granularity">
           <option value="low">Low</option>
@@ -47,10 +70,9 @@
         <h3>Describe your process</h3>
         <div class="row">
           <label for="title">Title (optional):</label>
-          <input type="text" id="title" placeholder="Workflow title" style="flex: 1; padding: 6px 8px; border: 1px solid #ddd; border-radius: 4px;">
+          <input type="text" id="title" placeholder="Workflow title">
         </div>
         <textarea id="input" placeholder="e.g., Launch email marketing campaign for a new feature ..."></textarea>
-        
       </div>
       <div class="panel" id="graph">
         <h3>Workflow</h3>

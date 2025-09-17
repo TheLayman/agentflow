@@ -7,46 +7,85 @@
     <link rel="preconnect" href="https://cdn.jsdelivr.net" />
     <link rel="preconnect" href="https://unpkg.com" />
     <style>
-      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; }
-      header { padding: 12px 16px; border-bottom: 1px solid #eee; display:flex; align-items:center; justify-content:space-between; }
-      main { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 16px; }
-      textarea { width: 100%; height: 200px; resize: vertical; }
-      .panel { border: 1px solid #eee; border-radius: 8px; padding: 12px; }
+      :root {
+        --bg: #0f172a;
+        --panel: #0b1225;
+        --card: #0e172f;
+        --muted: #94a3b8;
+        --text: #e2e8f0;
+        --border: #1e293b;
+        --primary: #3b82f6;
+        --primary-700: #2563eb;
+        --accent: #10b981;
+        --pill-bg: #0b2344;
+      }
+      * { box-sizing: border-box; }
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; color: var(--text); background: radial-gradient(1200px 600px at 100% -100%, #0b2344 10%, transparent 60%) , var(--bg); }
+      header { padding: 14px 18px; border-bottom: 1px solid var(--border); display:flex; align-items:center; justify-content:space-between; background: linear-gradient(180deg, rgba(16,24,40,0.6), rgba(16,24,40,0.2)); backdrop-filter: blur(6px); position: sticky; top: 0; z-index: 10; }
+      header .brand { display:flex; align-items:center; gap:10px; font-weight: 650; letter-spacing: 0.1px; }
+      header .brand .logo { width: 10px; height: 10px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--accent)); box-shadow: 0 0 0 3px rgba(59,130,246,0.25); }
+      main { display: grid; grid-template-columns: 1.1fr 1.2fr; gap: 18px; padding: 18px; }
+      .panel { border: 1px solid var(--border); border-radius: 12px; padding: 14px; background: var(--panel); box-shadow: 0 8px 24px rgba(2, 6, 23, 0.35) inset, 0 8px 24px rgba(2, 6, 23, 0.2); }
       .row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
-      input[type="text"] { flex: 1; padding: 6px 8px; border: 1px solid #ddd; border-radius: 4px; }
-      label { min-width: 120px; font-weight: 500; }
-      #graph { border: 1px solid #eee; border-radius: 8px; padding: 8px; overflow: auto; background: #fafafa; }
-      #mermaid { min-height: 300px; }
-      .controls { display:flex; gap:8px; flex-wrap: wrap; }
-      button { cursor: pointer; padding: 8px 12px; border-radius: 6px; border: 1px solid #ddd; background: white; }
-      button.primary { background: #1e88e5; border-color: #1e88e5; color: white; }
-      button:disabled { opacity: 0.6; cursor: not-allowed; background: #f0f0f0; color: #999; }
-      .loader { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; }
-      .spinner { width: 32px; height: 32px; border: 3px solid #f3f3f3; border-top: 3px solid #1e88e5; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 16px; }
-      @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-      code { background: #f6f8fa; padding: 2px 4px; border-radius: 4px; }
+      .muted { color: var(--muted); }
+      .controls { display:flex; gap:10px; flex-wrap: wrap; }
+      button { cursor: pointer; padding: 9px 14px; border-radius: 9px; border: 1px solid var(--border); background: #0a1223; color: var(--text); transition: all 160ms ease; }
+      button.primary { background: linear-gradient(180deg, var(--primary), var(--primary-700)); border-color: transparent; color: white; box-shadow: 0 8px 18px rgba(37, 99, 235, 0.35); }
+      button:hover { transform: translateY(-1px); }
+      button:active { transform: translateY(0); }
+      button:disabled { opacity: 0.6; cursor: not-allowed; filter: grayscale(20%); }
+      .status { margin-top: 6px; padding: 10px 12px; border: 1px dashed var(--border); border-radius: 10px; background: #0a1324; }
+      .status .badge { display:inline-block; margin-left: 6px; padding:2px 8px; border-radius:999px; font-size:12px; background: var(--pill-bg); border: 1px solid var(--border); color: var(--text); }
       .cols { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
       .list { display:flex; flex-direction:column; gap:10px; }
-      .card { border:1px solid #ddd; border-radius:8px; padding:10px; background:white; }
-      table { width:100%; border-collapse: collapse; }
-      th, td { border-bottom: 1px solid #eee; text-align:left; padding:6px 8px; vertical-align: top; }
-      .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; border:1px solid #ddd; background:#f7f7f7; }
-      .muted { color:#666; }
+      .card { border:1px solid var(--border); border-radius:10px; padding:12px; background: var(--card); box-shadow: 0 8px 18px rgba(2, 6, 23, 0.35); }
+      .card strong { color: #f8fafc; }
+      .pill { display:inline-block; padding:3px 9px; border-radius:999px; font-size:12px; border:1px solid var(--border); background: var(--pill-bg); color: var(--text); }
+      h3, h4 { margin: 6px 0 10px 0; }
+      h3 { font-size: 18px; }
+      h4 { font-size: 15px; color: #e5e7eb; }
+      .subtle { font-weight: 500; color: #cbd5e1; }
+      table { width:100%; border-collapse: separate; border-spacing: 0; font-size: 14px; }
+      thead th { position: sticky; top: 0; background: #0a1324; border-bottom: 1px solid var(--border); padding: 10px 8px; color: #cbd5e1; }
+      tbody td { border-bottom: 1px solid var(--border); padding: 10px 8px; color: var(--text); }
+      tbody tr:nth-child(odd) { background: rgba(148, 163, 184, 0.04); }
+      tbody tr:hover { background: rgba(59, 130, 246, 0.07); }
+      code { background: rgba(15, 23, 42, 0.6); padding: 2px 6px; border-radius: 6px; border: 1px solid var(--border); color: #e2e8f0; }
+      .tableWrap { overflow:auto; border: 1px solid var(--border); border-radius: 10px; }
+      details { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; background: #0a1324; }
+      details summary { cursor: pointer; }
       @media (max-width: 1100px) { main { grid-template-columns: 1fr; } }
     </style>
   </head>
   <body>
     <header>
-      <div><strong>Agentic Workflow Planner</strong></div>
+      <div class="brand">
+        <span class="logo"></span>
+        <span>Agentic Workflow Planner</span>
+      </div>
       <div class="controls">
-        <a href="/" style="text-decoration:none"><button>Back to Decomposer</button></a>
-        <button id="generate" class="primary">Generate From Latest</button>
+        <a href="/" style="text-decoration:none"><button>⟵ Back</button></a>
+        <button id="generate" class="primary">⚡ Generate Plan</button>
       </div>
     </header>
     <main>
       <div class="panel">
-        <h3>Latest Workflow</h3>
-        <div id="latestMeta" class="muted">No workflow found yet. Go back and click Decompose.</div>
+        <h3 class="subtle">Latest Workflow</h3>
+        <div id="latestMeta" class="status">No workflow found yet. Use <span class="pill">Back</span> to decompose first.</div>
+        <div class="row" style="margin-top:10px; gap:6px;">
+          <button id="tabDiagram" class="primary">Diagram</button>
+          <button id="tabTasks">Tasks</button>
+        </div>
+        <div id="wfDiagram" style="margin-top:10px;">
+          <div id="wfRender" class="card" style="overflow:auto;"></div>
+          <details style="margin-top:8px;">
+            <summary>Mermaid</summary>
+            <pre id="wfMermaid"></pre>
+          </details>
+        </div>
+        <div id="wfTasks" style="display:none; margin-top:10px;">
+          <div id="wfTasksList" class="list"></div>
+        </div>
       </div>
 
       <div class="panel" id="graph">
@@ -59,17 +98,17 @@
         <div id="plan" style="display:none;">
           <div class="cols">
             <div>
-              <h4>Agents</h4>
+              <h4>🧠 Agents <span id="agentsCount" class="badge"></span></h4>
               <div id="agents" class="list"></div>
             </div>
             <div>
-              <h4>Humans</h4>
+              <h4>👤 Humans <span id="humansCount" class="badge"></span></h4>
               <div id="humans" class="list"></div>
             </div>
           </div>
 
-          <h4 style="margin-top:14px;">Task Assignments</h4>
-          <div style="overflow:auto;">
+          <h4 style="margin-top:14px;">🗂 Task Assignments <span id="assignmentsCount" class="badge"></span></h4>
+          <div class="tableWrap">
             <table id="assignments">
               <thead>
                 <tr>
@@ -92,7 +131,7 @@
               <pre id="llm_error" style="white-space:pre-wrap"></pre>
               <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div><strong>LLM Raw:</strong></div>
-                <button id="downloadJson" style="padding: 4px 8px; font-size: 12px;">Download JSON</button>
+                <button id="downloadJson" style="padding: 6px 10px; font-size: 12px;" class="primary">Download JSON</button>
               </div>
               <pre id="llm_raw" style="white-space:pre-wrap; max-height:200px; overflow:auto;"></pre>
             </div>
