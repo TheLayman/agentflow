@@ -73,10 +73,10 @@ def to_mermaid(wf: Workflow, direction: str = "TD", detailed: bool = True) -> st
         # Choose node shape based on actor type
         if t.actor == "human":
             # Use hexagon for human tasks
-            out.append(f"  {t.id}{{{{{full_label}}}}}")
+            out.append(f'  {t.id}{{"{full_label}"}}')
         else:
             # Use rectangle for agent tasks
-            out.append(f"  {t.id}[\"{full_label}\"]")
+            out.append(f'  {t.id}["{full_label}"]')
     
     # Add styling for different actors
     out.append("")

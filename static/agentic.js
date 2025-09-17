@@ -1,41 +1,8 @@
-/* global mermaid */
+/* global mermaid, renderMermaidIn, escapeHtml, getLastWorkflowResponse */
 
 let currentAgenticData = null;
 
 document.addEventListener('DOMContentLoaded', function() {
-  mermaid.initialize({
-    startOnLoad: false,
-    theme: 'base',
-    themeVariables: {
-      lineColor: '#cbd5e1',
-      arrowheadColor: '#cbd5e1',
-      primaryTextColor: '#000000',
-      textColor: '#000000',
-      edgeLabelBackground: '#0a1324',
-      primaryColor: '#f1f5f9',
-      primaryBorderColor: '#94a3b8',
-      secondaryColor: '#f8fafc',
-      tertiaryColor: '#cbd5e1',
-      background: '#0f172a',
-      mainBkg: '#f1f5f9',
-      secondBkg: '#f8fafc',
-      tertiaryBkg: '#cbd5e1',
-      // Additional text color overrides
-      nodeBkg: '#f1f5f9',
-      clusterBkg: '#f8fafc',
-      edgeLabelText: '#000000',
-      nodeTextColor: '#000000'
-    },
-    flowchart: { 
-      useMaxWidth: true,
-      htmlLabels: true,
-      curve: 'basis',
-      nodeSpacing: 50,
-      rankSpacing: 60,
-      padding: 20
-    }
-  });
-
   const btn = document.getElementById('generate');
   const downloadJsonBtn = document.getElementById('downloadJson');
   if (btn) btn.addEventListener('click', generateAgentic);
@@ -191,19 +158,24 @@ function renderWorkflowPanel(latest) {
   const code = latest.mermaid || '';
   const pre = document.getElementById('wfMermaid');
   if (pre) pre.textContent = code;
-  renderMermaidIn('wfRender', code);
+  
+  // Only try to render if we have valid mermaid code
+  if (code && code.trim()) {
+    renderMermaidIn('wfRender', code).catch(err => {
+      console.error('Failed to render mermaid in workflow panel:', err);
+      const mount = document.getElementById('wfRender');
+      if (mount) {
+        mount.innerHTML = '<pre style="color:#ef4444; background:#1f1f1f; padding:10px; border-radius:4px;">Failed to render diagram</pre>';
+      }
+    });
+  } else {
+    const mount = document.getElementById('wfRender');
+    if (mount) {
+      mount.innerHTML = '<pre style="color:#f59e0b; background:#1f1f1f; padding:10px; border-radius:4px;">No mermaid diagram available</pre>';
+    }
+  }
+  
   renderWorkflowTasks(latest.workflow || { tasks: [] });
-}
-
-async function renderMermaidIn(containerId, code) {
-  const mount = document.getElementById(containerId);
-  if (!mount) return;
-  mount.innerHTML = '';
-  const el = document.createElement('div');
-  el.className = 'mermaid';
-  el.textContent = code;
-  mount.appendChild(el);
-  try { await mermaid.run({ nodes: [el] }); } catch (e) { el.innerHTML = '<pre style="color:#ef4444">'+String(e)+'</pre>'; }
 }
 
 function renderWorkflowTasks(wf) {

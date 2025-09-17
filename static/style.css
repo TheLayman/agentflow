@@ -1,0 +1,92 @@
+:root {
+  --bg: #0f172a;
+  --panel: #0b1225;
+  --card: #0e172f;
+  --muted: #94a3b8;
+  --text: #e2e8f0;
+  --border: #1e293b;
+  --primary: #3b82f6;
+  --primary-700: #2563eb;
+  --accent: #10b981;
+  --pill-bg: #0b2344;
+}
+* { box-sizing: border-box; }
+body {
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  margin: 0; color: var(--text);
+  background: radial-gradient(1200px 600px at 100% -100%, #0b2344 10%, transparent 60%), var(--bg);
+}
+header { padding: 14px 18px; border-bottom: 1px solid var(--border); display:flex; align-items:center; justify-content:space-between; background: linear-gradient(180deg, rgba(16,24,40,0.6), rgba(16,24,40,0.2)); backdrop-filter: blur(6px); position: sticky; top: 0; z-index: 10; }
+header .brand { display:flex; align-items:center; gap:10px; font-weight: 650; letter-spacing: 0.1px; }
+header .brand .logo { width: 10px; height: 10px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--accent)); box-shadow: 0 0 0 3px rgba(59,130,246,0.25); }
+main { display: grid; grid-template-columns: 1.1fr 1.2fr; gap: 18px; padding: 18px; }
+textarea { width: 100%; height: 220px; resize: vertical; }
+.panel { border: 1px solid var(--border); border-radius: 12px; padding: 14px; background: var(--panel); box-shadow: 0 8px 24px rgba(2, 6, 23, 0.35) inset, 0 8px 24px rgba(2, 6, 23, 0.2); }
+.row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+input[type="text"] { flex: 1; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: #0a1324; color: var(--text); }
+label { min-width: 120px; font-weight: 500; }
+.controls { display:flex; gap:10px; flex-wrap: wrap; }
+button { cursor: pointer; padding: 9px 14px; border-radius: 9px; border: 1px solid var(--border); background: #0a1223; color: var(--text); transition: all 160ms ease; }
+button.primary { background: linear-gradient(180deg, var(--primary), var(--primary-700)); border-color: transparent; color: white; box-shadow: 0 8px 18px rgba(37, 99, 235, 0.35); }
+button:hover { transform: translateY(-1px); }
+button:active { transform: translateY(0); }
+button:disabled { opacity: 0.6; cursor: not-allowed; filter: grayscale(20%); }
+.loader { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; }
+.spinner { width: 32px; height: 32px; border: 3px solid #1e293b; border-top: 3px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 16px; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+code { background: rgba(15, 23, 42, 0.6); padding: 2px 6px; border-radius: 6px; border: 1px solid var(--border); color: #e2e8f0; }
+.muted { color: var(--muted); }
+details { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; background: #0a1324; }
+.card { border:1px solid var(--border); border-radius:10px; padding:12px; background: var(--card); box-shadow: 0 8px 18px rgba(2, 6, 23, 0.35); }
+.pill { display:inline-block; padding:3px 9px; border-radius:999px; font-size:12px; border:1px solid var(--border); background: var(--pill-bg); color: var(--text); }
+table { width:100%; border-collapse: separate; border-spacing: 0; font-size: 14px; }
+thead th { position: sticky; top: 0; background: #0a1324; border-bottom: 1px solid var(--border); padding: 10px 8px; color: #cbd5e1; }
+tbody td { border-bottom: 1px solid var(--border); padding: 10px 8px; color: var(--text); }
+tbody tr:nth-child(odd) { background: rgba(148, 163, 184, 0.04); }
+tbody tr:hover { background: rgba(59, 130, 246, 0.07); }
+.tableWrap { overflow:auto; border: 1px solid var(--border); border-radius: 10px; }
+
+/* Mermaid node/edge styling for both containers */
+#render svg .edgePath .path, #wfRender svg .edgePath .path { stroke: #cbd5e1 !important; }
+#render svg marker path, #wfRender svg marker path { fill: #cbd5e1 !important; }
+#render svg .edgeLabel, #wfRender svg .edgeLabel { color: #e2e8f0 !important; }
+#render svg .edgeLabel text, #wfRender svg .edgeLabel text { fill: #e2e8f0 !important; }
+
+#render svg .node text, #wfRender svg .node text { fill: #000000 !important; font-weight: 600 !important; font-size: 13px !important; }
+#render svg .node foreignObject, #wfRender svg .node foreignObject { color: #000000 !important; font-weight: 600 !important; }
+#render svg .node foreignObject div, #wfRender svg .node foreignObject div { color: #000000 !important; font-weight: 600 !important; line-height: 1.2 !important; }
+#render svg .node foreignObject span, #wfRender svg .node foreignObject span { color: #000000 !important; font-weight: 600 !important; }
+
+#render svg .nodeLabel, #wfRender svg .nodeLabel { color: #000000 !important; font-weight: 600 !important; }
+#render svg .cluster text, #wfRender svg .cluster text { fill: #000000 !important; font-weight: 600 !important; }
+#render svg text, #wfRender svg text { fill: #000000 !important; }
+#render svg .label text, #wfRender svg .label text { fill: #000000 !important; }
+#render svg .label div, #wfRender svg .label div { color: #000000 !important; }
+#render svg tspan, #wfRender svg tspan { fill: #000000 !important; }
+
+#render svg [fill="#e2e8f0"], #wfRender svg [fill="#e2e8f0"] { fill: #000000 !important; }
+#render svg [color="#e2e8f0"], #wfRender svg [color="#e2e8f0"] { color: #000000 !important; }
+
+#render svg .node rect, #wfRender svg .node rect { fill: #f1f5f9 !important; stroke: #64748b !important; stroke-width: 2px !important; }
+#render svg .node polygon, #wfRender svg .node polygon { fill: #fef2f2 !important; stroke: #ef4444 !important; stroke-width: 2px !important; }
+
+#render { min-height: 400px !important; overflow: auto !important; background: rgba(255, 255, 255, 0.02) !important; border-radius: 10px !important; }
+#wfRender { min-height: 400px !important; overflow: auto !important; background: rgba(255, 255, 255, 0.02) !important; border-radius: 10px !important; }
+
+#render svg, #wfRender svg { width: 100% !important; height: auto !important; min-height: 300px !important; max-width: none !important; }
+
+@media (max-width: 1100px) {
+  main { grid-template-columns: 1fr; }
+  #render { min-height: 300px !important; }
+  #wfRender { min-height: 300px !important; }
+  #render svg { min-height: 250px !important; }
+  #wfRender svg { min-height: 250px !important; }
+}
+@media (max-width: 768px) {
+  #render { min-height: 250px !important; }
+  #wfRender { min-height: 250px !important; }
+  #render svg .node text { font-size: 11px !important; }
+  #wfRender svg .node text { font-size: 11px !important; }
+  #wfRender svg .node foreignObject div { font-size: 11px !important; }
+}
+

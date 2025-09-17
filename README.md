@@ -29,7 +29,6 @@ Quickstart
    - Home: http://localhost:8000
      - Enter your process and optional title, then click Decompose.
      - Review the Mermaid diagram, issues, and LLM debug.
-     - Download JPG to export the diagram.
    - Agentic Workflow: http://localhost:8000/agentic
      - Reuses the last decomposed workflow (no re‑entry of the process).
      - Left pane: show the workflow diagram or all task details.

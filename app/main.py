@@ -61,6 +61,16 @@ async def health():
     return {"ok": True}
 
 
+@app.get("/.well-known/appspecific/com.chrome.devtools.json", include_in_schema=False)
+async def chrome_devtools_json():
+    return {}
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    return HTMLResponse(status_code=204)
+
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 STATIC_DIR = BASE_DIR / "static"
 
