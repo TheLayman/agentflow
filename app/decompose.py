@@ -10,6 +10,15 @@ from .utils import sentence_split, normalize_task_name
 
 logger = logging.getLogger("workflow.decompose")
 
+def load_system_prompt() -> str:
+    """Load the system prompt from the external text file."""
+    prompt_file = os.path.join(os.path.dirname(__file__), "system_prompt.txt")
+    try:
+        with open(prompt_file, "r", encoding="utf-8") as f:
+            return f.read().strip()
+    except Exception as e:
+        logger.error("Error loading system prompt from %s: %s", prompt_file, e)
+
 def fallback_decomposition(req: DecomposeRequest) -> Workflow:
     logger.info("Using fallback decomposition (granularity=%s)", req.granularity)
     raw_sentences = sentence_split(req.text)
@@ -141,36 +150,7 @@ def try_llm_decomposition(req: DecomposeRequest) -> tuple[Workflow | None, str |
 
         client = OpenAI(api_key=api_key, base_url=os.getenv("OPENAI_BASE_URL") or "https://api.openai.com/v1/")
 
-        system_prompt = (
-            "You are a workflow decomposition engine that outputs only JSON conforming to the provided schema. "
-            "Goal: produce atomic, dependency-aware tasks suitable for software agents, with explicit human approval/verification gates where policy or risk requires it.\n\n"
-            
-            "Definitions:\n"
-            "Atomic task: one actor, one primary tool (if agent), one clear action, one bounded effect. No hidden substeps. "
-            "Each task must specify concrete inputs and produce concrete outputs. If an operation would need two different tools or two approvals, split it.\n"
-            "Agent task: actor='agent', must include tool and any parameters.\n"
-            "Human task: actor='human', typically approval='human' or used for judgment calls and verification steps.\n\n"
-            
-            "Constraints:\n"
-            "Acyclic DAG: use ids T1..Tn. depends_on may reference only earlier ids; no cycles.\n"
-            "Topological order: list tasks in executable order.\n"
-            "Interfaces, not vibes: every task has explicit inputs and outputs. Outputs of predecessors should satisfy the inputs of dependents.\n"
-            "Approvals & verification: insert human gates where legality, risk, or policy demands; set approval accordingly and express objective acceptance_criteria.\n"
-            "Automation first: prefer actor='agent' when a reliable tool/API exists and acceptance criteria can be machine-checked.\n"
-            "Parallelism: set parallelizable=true only if the task has no unresolved dependencies and no shared mutable artifact that would race.\n"
-            "Naming: title starts with a strong verb (e.g., 'Extract…', 'Validate…', 'Generate…', 'Route…').\n\n"
-            
-            "Atomicity heuristics:\n"
-            "One actor • One tool • One key artifact • One decision.\n"
-            "Can be implemented as a single API call or bounded human action; if not, split.\n"
-            "Each task's outputs should be immediately usable as another task's inputs or as a final deliverable.\n\n"
-            
-            "Quality bar:\n"
-            "No generic outputs ('processed data'); use concrete names ('extracted_parties.json').\n"
-            "No ambiguous verbs ('handle', 'manage'); prefer precise actions.\n"
-            "Use approval='human' for legal/judgment checkpoints; include objective acceptance criteria.\n"
-            "Return only JSON (no code fences), strictly matching the schema."
-        )
+        system_prompt = load_system_prompt()
         user_prompt = (
             f"Process: {req.text}\n"
             f"Granularity target: atomic (single actor, single tool, single action).\n"
